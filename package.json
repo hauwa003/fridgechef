@@ -1,0 +1,24 @@
+{
+  "name": "fridgechef",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "api": "npm run dev --workspace=apps/api",
+    "api:local": "npm run dev --workspace=apps/api-local",
+    "mobile": "npm run start --workspace=apps/mobile",
+    "db:up": "docker compose up -d",
+    "db:migrate": "npm run db:migrate --workspace=apps/api-local",
+    "dev": "npm run db:up && npm run db:migrate && concurrently \"npm run api:local\" \"npm run mobile\"",
+    "build:shared": "npm run build --workspace=packages/shared",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "typescript": "^5.4.5"
+  }
+}

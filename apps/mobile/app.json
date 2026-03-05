@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "FridgeChef",
+    "slug": "fridgechef",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.fridgechef.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "FridgeChef needs camera access to scan your fridge.",
+        "NSPhotoLibraryUsageDescription": "FridgeChef needs photo library access to upload fridge photos."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.fridgechef.app",
+      "permissions": ["android.permission.CAMERA", "android.permission.READ_MEDIA_IMAGES"]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-camera",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "FridgeChef needs access to your photos to upload fridge images."
+        }
+      ]
+    ],
+    "scheme": "fridgechef",
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
