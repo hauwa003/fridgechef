@@ -12,9 +12,15 @@ const app = Fastify({
   logger: {
     transport: { target: 'pino-pretty' },
   },
+  bodyLimit: 10 * 1024 * 1024, // 10MB
 })
 
 await app.register(cors, { origin: true })
+
+// Accept raw binary bodies for image uploads
+app.addContentTypeParser('image/jpeg', { parseAs: 'buffer' }, (_req, body, done) => done(null, body))
+app.addContentTypeParser('image/png', { parseAs: 'buffer' }, (_req, body, done) => done(null, body))
+app.addContentTypeParser('application/octet-stream', { parseAs: 'buffer' }, (_req, body, done) => done(null, body))
 
 // ── Health ────────────────────────────────────────────────────────────────
 app.get('/health', async () => ({ status: 'ok' }))
@@ -71,7 +77,7 @@ app.post('/sessions/:id/images/upload-url', { preHandler: getUser }, async (requ
   const storageKey = `${sessionId}/${crypto.randomUUID()}`
   // For local dev, return a URL pointing back to this server
   return {
-    upload_url: `http://localhost:${process.env.PORT ?? 3000}/upload/${storageKey}`,
+    upload_url: `http://${request.hostname}:${process.env.PORT ?? 3000}/upload/${storageKey}`,
     storage_key: storageKey,
     expires_in: 300,
   }
