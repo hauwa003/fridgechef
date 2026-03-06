@@ -1,29 +1,41 @@
 import { useEffect } from 'react'
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native'
 import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useSessionStore } from '@/store/session'
+import { useAuthStore } from '@/store/auth'
 import { api } from '@/lib/api'
 import { analytics } from '@/lib/analytics'
 
 export default function HomeScreen() {
   const router = useRouter()
   const setSession = useSessionStore((s) => s.setSession)
+  const initAuth = useAuthStore((s) => s.init)
+  const accessToken = useAuthStore((s) => s.accessToken)
 
   useEffect(() => {
     analytics.track('home_opened')
   }, [])
 
-  async function handleScanFridge() {
-    analytics.track('scan_cta_tapped')
-    const session = await api.createSession()
-    setSession(session)
-    router.push('/session/capture')
+  async function startSession(destination: '/session/capture' | '/session/ingredients') {
+    try {
+      if (!accessToken) await initAuth()
+      const session = await api.createSession()
+      setSession(session)
+      router.push(destination)
+    } catch (e: any) {
+      Alert.alert('Error', e?.message ?? 'Could not connect to server. Is the API running?')
+    }
   }
 
-  function handleTypeIngredients() {
+  async function handleScanFridge() {
+    analytics.track('scan_cta_tapped')
+    await startSession('/session/capture')
+  }
+
+  async function handleTypeIngredients() {
     analytics.track('manual_entry_tapped')
-    router.push('/session/ingredients')
+    await startSession('/session/ingredients')
   }
 
   return (

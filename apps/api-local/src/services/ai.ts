@@ -11,7 +11,7 @@ import { normalizeIngredients } from './normalization.js'
 import { getFallbackRecipes } from './fallback.js'
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-const MODEL = 'claude-sonnet-4-20250514'
+const MODEL = 'claude-sonnet-4-6'
 
 async function callClaude<T>(
   system: string,

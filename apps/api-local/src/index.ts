@@ -12,9 +12,15 @@ const app = Fastify({
   logger: {
     transport: { target: 'pino-pretty' },
   },
+  bodyLimit: 10 * 1024 * 1024, // 10MB
 })
 
 await app.register(cors, { origin: true })
+
+// Accept raw binary bodies for image uploads
+app.addContentTypeParser('image/jpeg', { parseAs: 'buffer' }, (_req, body, done) => done(null, body))
+app.addContentTypeParser('image/png', { parseAs: 'buffer' }, (_req, body, done) => done(null, body))
+app.addContentTypeParser('application/octet-stream', { parseAs: 'buffer' }, (_req, body, done) => done(null, body))
 
 // ── Health ────────────────────────────────────────────────────────────────
 app.get('/health', async () => ({ status: 'ok' }))
@@ -71,7 +77,7 @@ app.post('/sessions/:id/images/upload-url', { preHandler: getUser }, async (requ
   const storageKey = `${sessionId}/${crypto.randomUUID()}`
   // For local dev, return a URL pointing back to this server
   return {
-    upload_url: `http://localhost:${process.env.PORT ?? 3000}/upload/${storageKey}`,
+    upload_url: `http://${request.hostname}:${process.env.PORT ?? 3000}/upload/${storageKey}`,
     storage_key: storageKey,
     expires_in: 300,
   }
@@ -146,15 +152,16 @@ app.post('/sessions/:id/extract', { preHandler: getUser }, async (request: any, 
       ]
     }
 
+    let savedIngredients = ingredients
     if (ingredients.length > 0) {
-      await sql`
+      savedIngredients = await sql`
         insert into ingredients ${sql(ingredients.map(i => ({
           session_id: sessionId,
           name: i.name,
           confidence: i.confidence,
           source: 'vision',
           is_active: true,
-        })))}
+        })))} returning *
       `
     }
 
@@ -167,7 +174,7 @@ app.post('/sessions/:id/extract', { preHandler: getUser }, async (request: any, 
       await sql`update session_images set deleted_at = now() where session_id = ${sessionId}`
     }
 
-    return { ingredients, warnings }
+    return { ingredients: savedIngredients, warnings }
   } catch (err: any) {
     await sql`update sessions set state = 'FAILED', error_code = 'EXTRACTION_FAILED' where id = ${sessionId}`
     throw err

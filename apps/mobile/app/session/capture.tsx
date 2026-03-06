@@ -7,6 +7,7 @@ import {
   ScrollView,
   StyleSheet,
   Alert,
+  Linking,
 } from 'react-native'
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera'
 import * as ImagePicker from 'expo-image-picker'
@@ -64,15 +65,26 @@ export default function CaptureScreen() {
   if (!permission) return <View style={styles.container} />
 
   if (!permission.granted) {
+    const canAsk = permission.canAskAgain ?? true
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.permissionBox}>
           <Text style={styles.permissionTitle}>Camera Access Needed</Text>
           <Text style={styles.permissionText}>
-            FridgeChef needs camera access to scan your fridge.
+            {canAsk
+              ? 'FridgeChef needs camera access to scan your fridge.'
+              : 'Camera access was denied. Please enable it in your device Settings.'}
           </Text>
-          <TouchableOpacity style={styles.primaryButton} onPress={requestPermission}>
-            <Text style={styles.primaryButtonText}>Grant Permission</Text>
+          <TouchableOpacity
+            style={styles.primaryButton}
+            onPress={canAsk ? requestPermission : () => Linking.openSettings()}
+          >
+            <Text style={styles.primaryButtonText}>
+              {canAsk ? 'Grant Permission' : 'Open Settings'}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+            <Text style={styles.backButtonText}>Go Back</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -244,4 +256,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   primaryButtonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  backButton: { marginTop: 12, paddingVertical: 10, paddingHorizontal: 24 },
+  backButtonText: { color: '#6b7280', fontSize: 15 },
 })
