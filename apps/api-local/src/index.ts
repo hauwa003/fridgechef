@@ -152,15 +152,16 @@ app.post('/sessions/:id/extract', { preHandler: getUser }, async (request: any, 
       ]
     }
 
+    let savedIngredients = ingredients
     if (ingredients.length > 0) {
-      await sql`
+      savedIngredients = await sql`
         insert into ingredients ${sql(ingredients.map(i => ({
           session_id: sessionId,
           name: i.name,
           confidence: i.confidence,
           source: 'vision',
           is_active: true,
-        })))}
+        })))} returning *
       `
     }
 
@@ -173,7 +174,7 @@ app.post('/sessions/:id/extract', { preHandler: getUser }, async (request: any, 
       await sql`update session_images set deleted_at = now() where session_id = ${sessionId}`
     }
 
-    return { ingredients, warnings }
+    return { ingredients: savedIngredients, warnings }
   } catch (err: any) {
     await sql`update sessions set state = 'FAILED', error_code = 'EXTRACTION_FAILED' where id = ${sessionId}`
     throw err

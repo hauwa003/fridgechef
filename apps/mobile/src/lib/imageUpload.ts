@@ -1,5 +1,5 @@
 import * as ImageManipulator from 'expo-image-manipulator'
-import * as FileSystem from 'expo-file-system'
+import * as FileSystem from 'expo-file-system/legacy'
 import { IMAGE_MAX_DIMENSION, IMAGE_COMPRESS_QUALITY, MAX_IMAGE_SIZE_BYTES } from '@fridgechef/shared'
 import { api } from './api'
 
